@@ -1,0 +1,40 @@
+step:1 download the session manager plugin and check the version after installation
+step:2 download the aws cli and check the version after installation 
+step:3 create a user and assign the following roles or you can assign ecs full access
+
+ecs: ExecuteCommand
+ecs: DescribeTasks
+ecs: UpdateService 
+iam: PassRole
+
+step4: ecs task role  
+ 
+ {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Action": [
+                "ssmmessages:CreateControlChannel",
+                "ssmmessages:CreateDataChannel",
+                "ssmmessages:OpenControlChannel",
+                "ssmmessages:OpenDataChannel"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+
+
+step5: run the below command and see enableExecuteCommand is set to true or not , if it's false you can run the step-6 
+
+aws ecs describe-tasks --cluster demo_cluster --region us-east-1 --tasks 08415a586b324bf6b3f738b6fac230d9
+
+step:6 run the following command to enable execute command 
+
+aws ecs update-service --cluster demo_cluster --task-definition nginx-demo:1 --enable-execute-command --service nginx-service --desired-count 1 
+
+Step:7 login to the task using  the below command
+
+aws ecs execute-command --region us-east-1 --cluster demo_cluster --task 08415a586b324bf6b3f738b6fac230d9 --container nginx --command "/bin/bash" -- interactive
