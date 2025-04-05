@@ -1,0 +1,128 @@
+Install harshicorp vault
+
+vault --version 
+
+
+vault is a secret management tool which is written in GO  and it has components like authentication, poolicy, secrets, audit
+
+
+vault can be accessed through CLI, UI, API level 
+
+
+common use cases for vault:
+secrets management 
+dynamic secrets 
+kubernetes secrets 
+database credential rotation
+
+
+
+
+
+
+you can run in two modes which is devmode and server mode 
+
+
+vault server -dev   , 
+
+===========================================================
+
+after starting you will be able to see below tokens 
+
+Unseal Key:
+Root Token: 
+
+========================================================
+
+The dev servver is a built-in, pre-configured server that is not very secure but useful for playing with vault locally
+
+The dev server, which automatically unseals vault, set up in-memory storage (RAM), etc. If you stop the valut server the secrets will also eraised but in the server mode you will 
+have persistant storage 
+
+export VAULT_ADDR='http://127.0.0.1:8200'
+
+export root_token=
+
+vault login -address="http://0.0.0.0:8200" $root_token
+
+once you start valut it will by default run on 8200 
+
+
+vault auth list ---> list of auth methods which are available now
+
+By default token based is available, if you want you can allow whatever methods(userpass, approle e.t.c) you want using CLI/UI 
+
+
+vault auth enable userpass 
+vault auth tune -description="userpass based authentication" userpass/   ---> same command as above but we enabling with some description 
+
+once you added, check if it's added or not ---> vault auth list
+
+
+
+=========
+
+once you enabled  userpass  you should create user and password that we can do through UI or CLI level 
+
+In order to achieve this through CLI level we are using some endpoints
+
+vault path-help auth/userpass  -- it will give list of options for login, create, delete
+
+vault path-help auth/userpass/users 
+
+creating username and password:
+
+vault write auth/userpass/users/Teja password=tacos  
+
+
+similarly, approle have a different path 
+
+vault path-help auth/approle 
+
+syntax: vault path-help auth/approle/role/"rolename"
+
+eg: vault write auth/approle/role/webapp role_name="webapp" secret_id_num_uses=1 secret_id_ttl="2h"  will only work one time for duration 2hrs
+
+
+
+=======
+
+you have enabled authmethods like userpass and approle and now try to login with those methods 
+
+
+userpass 
+
+vault login -method=userpass username=Teja  one you hit this, it will prompt for the password 
+
+
+vault path-help auth/approle/role  --> check this what it's giving 
+
+vault path-help auth/approle/login  --> check this one as well
+
+vault read auth/approle/role/webapp/role-id  --> you will get role id 
+
+.
+set that as environment or normal variables -> role-id="id"
+
+
+now you need to create secret id for that role 
+
+
+vault write -force auth/approle/role/webapp/secret-id 
+
+
+set secrets also environment var or normal var secretId="id"
+
+
+now login
+
+
+vault write auth/approle/login role_id=$role_id secret_id=$secret_id
+
+
+
+
+disable authentication method:
+
+
+vault auth disable userpass
